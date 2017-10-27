@@ -9,11 +9,7 @@ using std::vector;
 using std::string;
 
 CompileState Compile(const char* gxx, const char* src, const char* bin, size_t ml, size_t tl, char* log, ...) {
-	vector<string> flags;
-	flags.push_back("g++");
-	flags.push_back(src);
-	flags.push_back("-o");
-	flags.push_back(bin);
+	vector<const char*> flags;
 	va_list lst;
 	va_start(lst, log);
 	char* p = va_arg(lst, char*);
@@ -22,6 +18,20 @@ CompileState Compile(const char* gxx, const char* src, const char* bin, size_t m
 		p = va_arg(lst, char*);
 	}
 	va_end(lst);
+	return Compilev(gxx, src, bin, ml, tl, log, flags.data());
+}
+
+CompileState Compilev(const char* gxx, const char* src, const char* bin, size_t ml, size_t tl, char* log, const char* const arg[]) {
+	vector<string> flags;
+	flags.push_back("g++");
+	flags.push_back(src);
+	flags.push_back("-o");
+	flags.push_back(bin);
+	const char* const* p = arg;
+	while (p) {
+		flags.push_back(*p);
+		++p;
+	}
 	string cmd;
 	for (unsigned i = 0; i < flags.size(); ++i) {
 		cmd += flags[i] + " ";

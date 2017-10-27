@@ -8,3 +8,12 @@ enum CompileState {
 
 CompileState Compile(const char* gxx, const char* src, const char* bin, size_t ml, size_t tl, char* log, ...);
 CompileState Compilev(const char* gxx, const char* src, const char* bin, size_t ml, size_t tl, char* log, const char* const arg[]);
+
+enum RunState {
+	RUN_OK,
+	RUN_RE,
+	RUN_TLE,
+	RUN_MLE,
+};
+
+RunState Run(const char* program, size_t ml, size_t tl);
