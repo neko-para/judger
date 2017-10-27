@@ -1,5 +1,4 @@
 #include "compiler.h"
-#include <stdarg.h>
 #include <string.h>
 #include <unistd.h>
 #include <fcntl.h>
@@ -7,43 +6,14 @@
 #include <sys/stat.h>
 #include <sys/resource.h>
 
-Compiler::Compiler(const char* g, size_t ml, size_t tl, const vector<string>& f) {
-	gxx = g;
-	memory_limit = ml;
-	time_limit = tl;
-	flags.push_back("g++");
-	flags.push_back("");
-	flags.push_back("-o");
-	flags.push_back("");
-	flags.insert(flags.end(), f.begin(), f.end());
-}
-
-Compiler::Compiler(const char* g, size_t ml, size_t tl, ...) {
-	gxx = g;
-	memory_limit = ml;
-	time_limit = tl;
-	flags.push_back("g++");
-	flags.push_back("");
-	flags.push_back("-o");
-	flags.push_back("");
-	va_list lst;
-	va_start(lst, tl);
-	char* p = va_arg(lst, char*);
-	while (p) {
-		flags.push_back(p);
-		p = va_arg(lst, char*);
-	}
-	va_end(lst);
-}
-
 Compiler::State Compiler::Compile(const string& file, const string& binary, string& log) {
+	flags[1] = file;
+	flags[3] = binary;
 	int Pipe[2];
 	pipe(Pipe);
 	rlimit lim;
-	lim.rlim_max = lim.rlim_cur = memory_limit * 1024 * 1024;
+	lim.rlim_max = lim.rlim_cur = memory_limit << 20;
 	setrlimit(RLIMIT_AS, &lim);
-	flags[1] = file;
-	flags[3] = binary;
 	pid_t Sub = fork();
 	if (Sub) {
 		int ret;
