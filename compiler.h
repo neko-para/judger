@@ -9,6 +9,8 @@ using std::vector;
 class Compiler {
 private:
 	string gxx;
+	size_t memory_limit;
+	size_t time_limit;
 	vector<string> flags;
 public:
 	enum State {
@@ -17,8 +19,8 @@ public:
 		COMPILE_TLE,
 	};
 
-	Compiler(const string& gxx, const vector<string>& flags);
-	Compiler(const char* gxx, ...);
+	Compiler(const char* gxx, size_t ml, size_t tl, const vector<string>& flags);
+	Compiler(const char* gxx, size_t ml, size_t tl, ...);
 	State Compile(const string& file, const string& binary, string& log);
 };
 

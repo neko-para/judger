@@ -7,8 +7,10 @@
 #include <sys/stat.h>
 #include <sys/resource.h>
 
-Compiler::Compiler(const string& g, const vector<string>& f) {
+Compiler::Compiler(const char* g, size_t ml, size_t tl, const vector<string>& f) {
 	gxx = g;
+	memory_limit = ml;
+	time_limit = tl;
 	flags.push_back("g++");
 	flags.push_back("");
 	flags.push_back("-o");
@@ -16,14 +18,16 @@ Compiler::Compiler(const string& g, const vector<string>& f) {
 	flags.insert(flags.end(), f.begin(), f.end());
 }
 
-Compiler::Compiler(const char* g, ...) {
+Compiler::Compiler(const char* g, size_t ml, size_t tl, ...) {
 	gxx = g;
+	memory_limit = ml;
+	time_limit = tl;
 	flags.push_back("g++");
 	flags.push_back("");
 	flags.push_back("-o");
 	flags.push_back("");
 	va_list lst;
-	va_start(lst, g);
+	va_start(lst, tl);
 	char* p = va_arg(lst, char*);
 	while (p) {
 		flags.push_back(p);
@@ -36,7 +40,7 @@ Compiler::State Compiler::Compile(const string& file, const string& binary, stri
 	int Pipe[2];
 	pipe(Pipe);
 	rlimit lim;
-	lim.rlim_max = lim.rlim_cur = 256 * 1024 * 1024;
+	lim.rlim_max = lim.rlim_cur = memory_limit * 1024 * 1024;
 	setrlimit(RLIMIT_AS, &lim);
 	flags[1] = file;
 	flags[3] = binary;
@@ -46,7 +50,7 @@ Compiler::State Compiler::Compile(const string& file, const string& binary, stri
 		int cnt = 0;
 		while (Sub != waitpid(Sub, &ret, WNOHANG)) {
 			usleep(100 * 1000);
-			if (++cnt == 50) {
+			if (++cnt == time_limit) {
 				kill(Sub, SIGKILL);
 				return COMPILE_TLE;
 			}
