@@ -1,0 +1,7 @@
+#!/bin/sh
+for i in compiler runner; do
+	if [ -e $i.cpp ]; then
+		rm $i.cpp;
+	fi
+	ln -s $i.$1.cpp $i.cpp
+done
