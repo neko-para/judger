@@ -1,18 +1,34 @@
-#include "compiler.h"
+#include "test.h"
+#include <vector>
+#include <string>
 #include <string.h>
+#include <stdarg.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/wait.h>
 #include <sys/stat.h>
 #include <sys/resource.h>
+using std::vector;
+using std::string;
 
-Compiler::State Compiler::Compile(const string& file, const string& binary, string& log) {
-	flags[1] = file;
-	flags[3] = binary;
+CompileState Compile(const char* gxx, const char* src, const char* bin, size_t ml, size_t tl, char* log, ...) {
+	vector<string> flags;
+	flags.push_back("g++");
+	flags.push_back(src);
+	flags.push_back("-o");
+	flags.push_back(bin);
+	va_list lst;
+	va_start(lst, log);
+	char* p = va_arg(lst, char*);
+	while (p) {
+		flags.push_back(p);
+		p = va_arg(lst, char*);
+	}
+	va_end(lst);
 	int Pipe[2];
 	pipe(Pipe);
 	rlimit lim;
-	lim.rlim_max = lim.rlim_cur = memory_limit << 20;
+	lim.rlim_max = lim.rlim_cur = ml << 20;
 	setrlimit(RLIMIT_AS, &lim);
 	pid_t Sub = fork();
 	if (Sub) {
@@ -20,15 +36,14 @@ Compiler::State Compiler::Compile(const string& file, const string& binary, stri
 		int cnt = 0;
 		while (Sub != waitpid(Sub, &ret, WNOHANG)) {
 			usleep(100 * 1000);
-			if (++cnt == time_limit) {
+			if (++cnt == tl) {
 				kill(Sub, SIGKILL);
 				return COMPILE_TLE;
 			}
 		}
 		close(Pipe[1]);
-		char buffer[257];
-		buffer[read(Pipe[0], buffer, 256)] = 0;
-		log = buffer;
+		log[read(Pipe[0], log, 256)] = 0;
+		char buffer[256];
 		while (read(Pipe[0], buffer, 256)) {}
 		if (WEXITSTATUS(ret)) {
 			return COMPILE_ERR;
@@ -45,7 +60,7 @@ Compiler::State Compiler::Compile(const string& file, const string& binary, stri
 		Arg.push_back(0);
 		close(Pipe[0]);
 		dup2(Pipe[1], 2);
-		execv(gxx.c_str(), Arg.data());
+		execv(gxx, Arg.data());
 		return COMPILE_OK;
 	}
 }

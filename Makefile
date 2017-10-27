@@ -1,11 +1,7 @@
-CLS=compiler runner
-OBJS=main.o $(patsubst %, %.o, $(CLS)) $(patsubst %, %.general.o, $(CLS))
 ifeq ($(shell uname -o), GNU/Linux)
 OS=linux
-EXESUF=
 else
 OS=windows
-EXESUF=.exe
 endif
 
 ifeq ($(OS), windows)
@@ -13,20 +9,21 @@ LDFLAGS+=-lpsapi -static-libgcc -static-libstdc++
 EXESUF=.exe
 endif
 
-all: CONFIG main$(EXESUF)
+all: CONFIG libtest.a main$(EXESUF)
 
 CONFIG:
 	./config $(OS)
 
 clean:
-	-rm -f main
-	-rm -f $(OBJS)
+	-rm -f main$(EXESYUF) libtest.a
+	-rm -f test.o main.o
 
-%.o: %.cpp %.h
+test.o: test.cpp test.h
 
-%.general.o: %.general.cpp %.h
+libtest.a: test.o
+	ar r libtest.a test.o
 
-main.o: main.cpp compiler.h runner.h
+main.o: main.cpp test.h
 
-main$(EXESUF): $(OBJS)
-	$(CXX) $(OBJS) -o main$(EXESUF) $(CXXFLAGS) $(LDFLAGS)
+main$(EXESUF): main.o libtest.a
+	$(CXX) main.o libtest.a -o main$(EXESUF) $(CXXFLAGS) $(LDFLAGS)

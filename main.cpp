@@ -1,9 +1,8 @@
-#include "compiler.h"
+#include "test.h"
 #include <iostream>
 
 int main() {
-	Compiler compiler("/usr/bin/gcc", 256, 50, "-std=c++11", 0);
-	string log;
-	int ret = compiler.Compile("test.cpp", "test", log);
+	char log[257];
+	int ret = Compile("/usr/bin/g++", "123.cpp", "123", 256, 50, log, "-std=c++11", 0);
 	std::cout << ret << ' ' << log << std::endl;
 }
