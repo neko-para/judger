@@ -41,6 +41,7 @@ CompileState Compilev(const char* gxx, const char* src, const char* bin, size_t 
 	strcpy(cmdptr, cmd.c_str());
 
 	ml <<= 20;
+	tl *= CLOCKS_PER_SEC / 1000;
 	HANDLE hPipeRead, hPipeWrite;
 	CreatePipe(&hPipeRead, &hPipeWrite, NULL, 0);
 	PROCESS_INFORMATION pi;
@@ -50,15 +51,16 @@ CompileState Compilev(const char* gxx, const char* src, const char* bin, size_t 
 	si.hStdError = hPipeWrite;
 	CreateProcessA(gxx, cmdptr, NULL, NULL, FALSE, CREATE_NO_WINDOW, NULL, NULL, &si, &pi);
 	DWORD ret;
-	int cnt = 0;
+	clock_t base = clock();
 	while (WaitForSingleObject(pi.hProcess, 0) == WAIT_OBJECT_0) {
-		Sleep(100);
-		if (++cnt == tl) {
+		if (clock() - base > tl) {
 			TerminateProcess(pi.hProcess, 0);
+			log[0] = 0;
 			return COMPILE_TLE;
 		}
 		if (GetProcessMemUse((long)pi.hProcess) > ml) {
 			TerminateProcess(pi.hProcess, 0);
+			log[0] = 0;
 			return COMPILE_MLE;
 		}
 	}

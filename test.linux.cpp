@@ -4,6 +4,7 @@
 #include <string>
 #include <string.h>
 #include <stdarg.h>
+#include <time.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include <sys/wait.h>
@@ -37,20 +38,22 @@ CompileState Compilev(const char* gxx, const char* src, const char* bin, size_t 
 		++p;
 	}
 	ml <<= 20;
+	tl *= CLOCKS_PER_SEC / 1000;
 	int Pipe[2];
 	pipe(Pipe);
 	pid_t Sub = fork();
 	if (Sub) {
 		int ret;
-		int cnt = 0;
+		clock_t base = clock();
 		while (Sub != waitpid(Sub, &ret, WNOHANG)) {
-			usleep(100 * 1000);
-			if (++cnt == tl) {
+			if (clock() - base > tl) {
 				kill(Sub, SIGKILL);
+				log[0] = 0;
 				return COMPILE_TLE;
 			}
 			if (GetProcessMemUse(Sub) > ml) {
 				kill(Sub, SIGKILL);
+				log[0] = 0;
 				return COMPILE_MLE;
 			}
 		}
@@ -75,5 +78,37 @@ CompileState Compilev(const char* gxx, const char* src, const char* bin, size_t 
 		dup2(Pipe[1], 2);
 		execv(gxx, Arg.data());
 		return COMPILE_OK;
+	}
+}
+
+RunState Run(const char* program, size_t ml, size_t tl) {
+	ml <<= 20;
+	tl *= CLOCKS_PER_SEC / 1000;
+	pid_t Sub = fork();
+	if (Sub) {
+		int ret;
+		clock_t base = clock();
+		while (Sub != waitpid(Sub, &ret, WNOHANG)) {
+			if (clock() - base > tl) {
+				kill(Sub, SIGKILL);
+				return RUN_TLE;
+			}
+			if (GetProcessMemUse(Sub) > ml) {
+				kill(Sub, SIGKILL);
+				return RUN_MLE;
+			}
+		}
+		if (WEXITSTATUS(ret)) {
+			return RUN_RE;
+		} else {
+			return RUN_OK;
+		}
+	} else {
+		int in = open(".input", O_RDONLY);
+		int out = open(".output", O_WRONLY);
+		dup2(in, 0);
+		dup2(out, 1);
+		execl(program, program, NULL);
+		return RUN_OK;
 	}
 }

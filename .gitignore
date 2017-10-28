@@ -1,6 +1,10 @@
 *.o
 *.exe
 *.a
+.vscode
 main
+123
 test.cpp
 procres.cpp
+.input
+.output
