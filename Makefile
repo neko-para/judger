@@ -16,12 +16,12 @@ CONFIG:
 
 clean:
 	-rm -f main$(EXESYUF) libtest.a
-	-rm -f test.o main.o
+	-rm -f test.o procres.o main.o
 
-test.o: test.cpp test.h
+%.o: %.cpp %.h
 
-libtest.a: test.o
-	ar r libtest.a test.o
+libtest.a: test.o procres.o
+	ar r libtest.a test.o procres.o
 
 main.o: main.cpp test.h
 

@@ -1,4 +1,4 @@
-#include <iostream>
+#include </dev/zero>
 using namespace std;
 
 int main() {

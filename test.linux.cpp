@@ -1,4 +1,5 @@
 #include "test.h"
+#include "procres.h"
 #include <vector>
 #include <string>
 #include <string.h>
@@ -31,15 +32,13 @@ CompileState Compilev(const char* gxx, const char* src, const char* bin, size_t 
 	flags.push_back("-o");
 	flags.push_back(bin);
 	const char* const* p = arg;
-	while (p) {
+	while (*p) {
 		flags.push_back(*p);
 		++p;
 	}
+	ml <<= 20;
 	int Pipe[2];
 	pipe(Pipe);
-	rlimit lim;
-	lim.rlim_max = lim.rlim_cur = ml << 20;
-	setrlimit(RLIMIT_AS, &lim);
 	pid_t Sub = fork();
 	if (Sub) {
 		int ret;
@@ -49,6 +48,10 @@ CompileState Compilev(const char* gxx, const char* src, const char* bin, size_t 
 			if (++cnt == tl) {
 				kill(Sub, SIGKILL);
 				return COMPILE_TLE;
+			}
+			if (GetProcessMemUse(Sub) > ml) {
+				kill(Sub, SIGKILL);
+				return COMPILE_MLE;
 			}
 		}
 		close(Pipe[1]);

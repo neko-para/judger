@@ -1,4 +1,5 @@
 #include "test.h"
+#include "procres.h"
 #include <vector>
 #include <string>
 #include <windows.h>
@@ -39,6 +40,7 @@ CompileState Compilev(const char* gxx, const char* src, const char* bin, size_t 
 	char* cmdptr = new char[cmd.length() + 1];
 	strcpy(cmdptr, cmd.c_str());
 
+	ml <<= 20;
 	HANDLE hPipeRead, hPipeWrite;
 	CreatePipe(&hPipeRead, &hPipeWrite, NULL, 0);
 	PROCESS_INFORMATION pi;
@@ -55,11 +57,9 @@ CompileState Compilev(const char* gxx, const char* src, const char* bin, size_t 
 			TerminateProcess(pi.hProcess, 0);
 			return COMPILE_TLE;
 		}
-		PROCESS_MEMORY_COUNTERS pmc;
-		GetProcessMemoryInfo(pi.hProcess, &pmc, sizeof(pmc));
-		if (pmc.PeakWorkingSetSize > (ml << 20)) {
+		if (GetProcessMemUse((long)pi.hProcess) > ml) {
 			TerminateProcess(pi.hProcess, 0);
-			return COMPILE_ERR;
+			return COMPILE_MLE;
 		}
 	}
 	GetExitCodeProcess(pi.hProcess, &ret);

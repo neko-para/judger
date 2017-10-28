@@ -1,3 +1,4 @@
 #!/bin/sh
-rm -f test.cpp
+rm -f test.cpp procres.cpp
 ln test.$1.cpp test.cpp -s
+ln procres.$1.cpp procres.cpp -s
