@@ -112,3 +112,38 @@ RunState Run(const char* program, size_t ml, size_t tl) {
 		return RUN_OK;
 	}
 }
+
+CheckState Check(const char* program, const char* fileA, const char* fileB, char* log) {
+	vector<string> flags;
+	flags.push_back(program);
+	flags.push_back(fileA);
+	flags.push_back(fileB);
+	int Pipe[2];
+	pipe(Pipe);
+	pid_t Sub = fork();
+	if (Sub) {
+		int ret;
+		while (Sub != wait(&ret)) {}
+		close(Pipe[1]);
+		log[read(Pipe[0], log, 256)] = 0;
+		char buffer[256];
+		while (read(Pipe[0], buffer, 256)) {}
+		if (WEXITSTATUS(ret)) {
+			return CHECK_ERR;
+		} else {
+			return CHECK_OK;
+		}
+	} else {
+		vector<char*> Arg;
+		for (size_t i = 0; i < flags.size(); ++i) {
+			char* p = new char[flags[i].length() + 1];
+			strcpy(p, flags[i].c_str());
+			Arg.push_back(p);
+		}
+		Arg.push_back(0);
+		close(Pipe[0]);
+		dup2(Pipe[1], 1);
+		execv(program, Arg.data());
+		return CHECK_OK;
+	}
+}

@@ -7,4 +7,6 @@ int main() {
 	std::cout << ret << ' ' << log << std::endl;
 	ret = Run("123", 256, 1000);
 	std::cout << ret << std::endl;
+	ret = Check("checker/legacy", ".output", ".output", log);
+	std::cout << ret << ' ' << log << std::endl;
 }

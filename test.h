@@ -18,3 +18,11 @@ enum RunState {
 };
 
 RunState Run(const char* program, size_t ml, size_t tl);
+
+enum CheckState {
+	CHECK_OK,
+	CHECK_WA,
+	CHECK_PE,
+};
+
+CheckState Check(const char* program, const char* fileA, const char* fileB, char* log);
