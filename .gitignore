@@ -3,7 +3,7 @@
 *.a
 .vscode
 main
-123
+checker/legacy
 test.cpp
 procres.cpp
 .input

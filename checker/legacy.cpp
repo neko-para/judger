@@ -38,7 +38,7 @@ int main(int argc, char* argv[]) {
 		if (bc == ' ' && (B.peek() == '\n' || B.peek() == EOF)) {
 			bc = B.get();
 		}
-		if ((ac == EOF && bc == '\n') || (ac == '\n' && bc == EOF) || (ac == EOF && bc == EOF)) {
+		if ((ac == EOF && bc == '\n' && B.peek() == EOF) || (ac == '\n' && bc == EOF && A.peek() == EOF) || (ac == EOF && bc == EOF)) {
 			break;
 		}
 		if (ac == EOF || bc == EOF) {
