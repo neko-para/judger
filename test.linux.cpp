@@ -128,11 +128,7 @@ CheckState Check(const char* program, const char* fileA, const char* fileB, char
 		log[read(Pipe[0], log, 256)] = 0;
 		char buffer[256];
 		while (read(Pipe[0], buffer, 256)) {}
-		if (WEXITSTATUS(ret)) {
-			return CHECK_ERR;
-		} else {
-			return CHECK_OK;
-		}
+		return (CheckState)WEXITSTATUS(ret);
 	} else {
 		vector<char*> Arg;
 		for (size_t i = 0; i < flags.size(); ++i) {

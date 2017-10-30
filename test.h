@@ -23,6 +23,7 @@ enum CheckState {
 	CHECK_OK,
 	CHECK_WA,
 	CHECK_PE,
+	CHECK_FE,
 };
 
 CheckState Check(const char* program, const char* fileA, const char* fileB, char* log);
