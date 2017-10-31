@@ -1,10 +1,12 @@
-ifeq ($(shell uname -o), GNU/Linux)
-OS=linux
+ifeq ($(shell uname), Linux)
+OS=posix
+else ifeq ($(shell uname), Darwin)
+OS=posix
 else
-OS=windows
+OS=win32
 endif
 
-ifeq ($(OS), windows)
+ifeq ($(OS), win32)
 LDFLAGS+=-lpsapi
 EXESUF=.exe
 endif
