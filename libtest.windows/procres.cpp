@@ -1,4 +1,4 @@
-#include "procres.h"
+#include "../libtest/procres.h"
 #include <windows.h>
 
 long GetProcessMemUse(long handle) {

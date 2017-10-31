@@ -1,5 +1,5 @@
-#include "test.h"
-#include "procres.h"
+#include "../libtest/test.h"
+#include "../libtest/procres.h"
 #include <vector>
 #include <string>
 #include <windows.h>
