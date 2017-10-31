@@ -21,5 +21,5 @@ enum CheckState {
 
 CompileState Compile(const char* gxx, const char* src, const char* bin, size_t ml, size_t tl, char* log, ...);
 CompileState Compilev(const char* gxx, const char* src, const char* bin, size_t ml, size_t tl, char* log, const char* const arg[]);
-RunState Run(const char* program, size_t ml, size_t tl);
+RunState Run(const char* program, size_t ml, size_t tl, size_t* mu, size_t* tu);
 CheckState Check(const char* program, const char* fileA, const char* fileB, char* log);

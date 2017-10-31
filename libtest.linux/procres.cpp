@@ -1,4 +1,4 @@
-#include "procres.h"
+#include "../procres.h"
 #include <stdio.h>
 #include <sys/types.h>
 

@@ -2,9 +2,5 @@
 *.exe
 *.a
 .vscode
-main
-checker/legacy
-test.cpp
-procres.cpp
-.input
-.output
+out/
+tmp/

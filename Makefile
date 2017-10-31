@@ -5,31 +5,39 @@ OS=windows
 endif
 
 ifeq ($(OS), windows)
-LDFLAGS+=-lpsapi -static-libgcc -static-libstdc++
+LDFLAGS+=-lpsapi
 EXESUF=.exe
 endif
-CHECKER=$(patsubst checker/%.cpp, checker/%$(EXESUF), $(wildcard checker/*.cpp))
+CHECKER=$(patsubst checker/%.cpp, out/%$(EXESUF), $(wildcard checker/*.cpp))
+OBJS=$(patsubst src/%.cpp, tmp/%.o, $(wildcard src/*.cpp))
 
-all: CONFIG
-	make libtest.a main$(EXESUF) $(CHECKER)
-
-CONFIG:
-	./config $(OS)
+all: dirs tmp/libtest.a out/judger$(EXESUF) out/$(CHECKER)
 
 clean:
-	./config
-	-rm -f main$(EXESYUF) libtest.a
-	-rm -f test.o procres.o main.o
+	-rm -rf tmp
+	-rm -rf out
 
-%.o: %.cpp %.h
+dirs: tmp out
 
-libtest.a: test.o procres.o
-	$(AR) r libtest.a test.o procres.o
+.PHONY: all clean dirs
 
-main.o: main.cpp test.h
+out:
+	mkdir -p out
 
-main$(EXESUF): main.o libtest.a
-	$(CXX) main.o libtest.a -o main$(EXESUF) $(CXXFLAGS) $(LDFLAGS)
+tmp:
+	mkdir -p tmp
 
-checker/%$(EXESUF): checker/%.cpp
+tmp/%.o: libtest.$(OS)/%.cpp
+	$(CXX) -c $< -o $@ $(CXXFLAGS)
+
+tmp/libtest.a: tmp/test.o tmp/procres.o
+	$(AR) r tmp/libtest.a tmp/test.o tmp/procres.o
+
+out/%$(EXESUF): checker/%.cpp
 	$(CXX) $< -o $@ $(CXXFLAGS)
+
+tmp/%.o: src/%.cpp $(wildcard *.h)
+	$(CXX) -c $< -o $@ $(CXXFLAGS)
+
+out/judger$(EXESUF): $(OBJS)
+	$(CXX) $(OBJS) -o $@ $(CXXFLAGS) $(LDFLAGS) -lncurses tmp/libtest.a

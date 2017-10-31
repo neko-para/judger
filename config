@@ -1,6 +1,0 @@
-#!/bin/sh
-rm -f test.cpp procres.cpp
-if [ -n "$1" ]; then
-	ln -s libtest.$1/test.$1.cpp test.cpp;
-	ln -s libtest.$1/procres.$1.cpp procres.cpp;
-fi

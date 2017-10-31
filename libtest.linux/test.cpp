@@ -1,5 +1,5 @@
-#include "test.h"
-#include "procres.h"
+#include "../test.h"
+#include "../procres.h"
 #include <vector>
 #include <string>
 #include <string.h>
@@ -12,6 +12,7 @@
 #include <sys/resource.h>
 using std::vector;
 using std::string;
+using std::max;
 
 CompileState Compile(const char* gxx, const char* src, const char* bin, size_t ml, size_t tl, char* log, ...) {
 	vector<const char*> flags;
@@ -81,10 +82,11 @@ CompileState Compilev(const char* gxx, const char* src, const char* bin, size_t 
 	}
 }
 
-RunState Run(const char* program, size_t ml, size_t tl) {
+RunState Run(const char* program, size_t ml, size_t tl, size_t* mu, size_t* tu) {
 	ml <<= 20;
 	tl *= CLOCKS_PER_SEC / 1000;
 	pid_t Sub = fork();
+	*mu = 0;
 	if (Sub) {
 		int ret;
 		clock_t base = clock();
@@ -93,11 +95,14 @@ RunState Run(const char* program, size_t ml, size_t tl) {
 				kill(Sub, SIGKILL);
 				return RUN_TLE;
 			}
-			if (GetProcessMemUse(Sub) > ml) {
+			size_t m = GetProcessMemUse(Sub);
+			if (m > ml) {
 				kill(Sub, SIGKILL);
 				return RUN_MLE;
 			}
+			*mu = max(*mu, m);
 		}
+		*tu = (clock() - base) * 1000 / CLOCKS_PER_SEC;
 		if (WEXITSTATUS(ret)) {
 			return RUN_RE;
 		} else {
