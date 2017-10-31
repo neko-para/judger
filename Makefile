@@ -9,12 +9,15 @@ LDFLAGS+=-lpsapi -static-libgcc -static-libstdc++
 EXESUF=.exe
 endif
 CHECKER=$(patsubst checker/%.cpp, checker/%$(EXESUF), $(wildcard checker/*.cpp))
-all: CONFIG libtest.a main$(EXESUF) $(CHECKER)
+
+all: CONFIG
+	make libtest.a main$(EXESUF) $(CHECKER)
 
 CONFIG:
 	./config $(OS)
 
 clean:
+	./config
 	-rm -f main$(EXESYUF) libtest.a
 	-rm -f test.o procres.o main.o
 
