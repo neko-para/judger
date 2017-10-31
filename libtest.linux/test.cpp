@@ -84,7 +84,7 @@ CompileState Compilev(const char* gxx, const char* src, const char* bin, size_t 
 
 RunState Run(const char* program, size_t ml, size_t tl, size_t* mu, size_t* tu) {
 	ml <<= 20;
-	tl *= CLOCKS_PER_SEC / 1000;
+	tl *= CLOCKS_PER_SEC / 1000 + 1000;
 	pid_t Sub = fork();
 	*mu = 0;
 	if (Sub) {
@@ -103,6 +103,9 @@ RunState Run(const char* program, size_t ml, size_t tl, size_t* mu, size_t* tu) 
 			*mu = max(*mu, m);
 		}
 		*tu = (clock() - base) * 1000 / CLOCKS_PER_SEC;
+		if (*tu > tl - 1000) {
+			return RUN_TLE;
+		}
 		if (WEXITSTATUS(ret)) {
 			return RUN_RE;
 		} else {
