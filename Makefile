@@ -10,6 +10,7 @@ ifeq ($(OS), win32)
 LDFLAGS+=-lpsapi
 EXESUF=.exe
 endif
+CXXFLAGS+=-std=c++11 -g
 CHECKER=$(patsubst checker/%.cpp, out/%$(EXESUF), $(wildcard checker/*.cpp))
 OBJS=$(patsubst src/%.cpp, tmp/%.o, $(wildcard src/*.cpp))
 
