@@ -121,11 +121,12 @@ RunState Run(const char* program, size_t ml, size_t tl, size_t* mu, size_t* tu) 
 	}
 }
 
-CheckState Check(const char* program, const char* fileA, const char* fileB, char* log) {
+CheckState Check(const char* program, const char* fileA, const char* fileB, const char* param, char* log) {
 	vector<string> flags;
 	flags.push_back(program);
 	flags.push_back(fileA);
 	flags.push_back(fileB);
+	flags.push_back(param);
 	int Pipe[2];
 	pipe(Pipe);
 	pid_t Sub = fork();
