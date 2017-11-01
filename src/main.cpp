@@ -1,5 +1,6 @@
 #include <ncurses.h>
 #include <stdarg.h>
+#include <string.h>
 #include <string>
 #include <vector>
 #include <algorithm>
@@ -90,6 +91,47 @@ struct Menu {
 	}
 };
 
+struct Dialog {
+	WINDOW* wnd;
+	bool exit;
+	Dialog() {
+		exit = false;
+	}
+	virtual ~Dialog() {
+		if (wnd) {
+			delwin(wnd);
+		}
+	}
+	void Loop() {
+		while (!exit) {
+			Draw();
+			wrefresh(wnd);
+			Input(getch());
+		}
+		delete this;
+	}
+	virtual void Input(int k) {}
+	virtual void Draw() {}
+};
+
+struct AboutDlg : public Dialog {
+	AboutDlg() {
+		const char* msg = "Judger. a simple oi contest.";
+		int l = strlen(msg);
+		wnd = newwin(4, l + 2, Height / 2 - 2, (Width - l) >> 1);
+		box(wnd, 0, 0);
+		wmove(wnd, 1, 1);
+		waddstr(wnd, msg);
+		wmove(wnd, 2, (l - 2) >> 1);
+		waddstr(wnd, "ok");
+	}
+	virtual void Input(int k) {
+		if (k == '\n' || k == ' ') {
+			exit = true;
+		}
+	}
+};
+
 int main() {
 	setlocale(LC_ALL, "");
 	initscr();
@@ -111,17 +153,26 @@ int main() {
 			new Menu("New", [](Menu*) {}, 0),
 			new Menu("Open", [](Menu*) {}, 0),
 			new Menu("Close", [](Menu*) {}, 0),
-			new Menu("Exit", [&quit](Menu*) {quit = false;}, 0),
+			new Menu("Exit", [&quit](Menu*) {
+				quit = false;
+			}, 0),
 			0
 		),
 		new Menu("Setting", 0,
 			new Menu("Language", 0,
 				new Menu("English <", 0, 0),
-				new Menu("中文", [&](Menu*) {menu = menu_chs; menu_popup = false;}, 0),
+				new Menu("中文", [&](Menu*) {
+					menu = menu_chs;
+					menu_popup = false;
+				}, 0),
 				0
 			),
 			0
 		),
+		new Menu("About", [&](Menu*) {
+			menu_popup = false;
+			(new AboutDlg)->Loop();
+		}, 0),
 		0
 	);
 	menu_chs = new Menu("menu_chs", 0,
@@ -129,17 +180,26 @@ int main() {
 			new Menu("新建", [](Menu*) {}, 0),
 			new Menu("打开", [](Menu*) {}, 0),
 			new Menu("关闭", [](Menu*) {}, 0),
-			new Menu("退出", [&quit](Menu*) {quit = false;}, 0),
+			new Menu("退出", [&quit](Menu*) {
+				quit = false;
+			}, 0),
 			0
 		),
 		new Menu("设置", 0,
 			new Menu("语言", 0,
-				new Menu("English", [&](Menu*) {menu = menu_en; menu_popup = false;}, 0),
+				new Menu("English", [&](Menu*) {
+					menu = menu_en;
+					menu_popup = false;
+				}, 0),
 				new Menu("中文 <", 0, 0),
 				0
 			),
 			0
 		),
+		new Menu("关于", [&](Menu*) {
+			menu_popup = false;
+			(new AboutDlg)->Loop();
+		}, 0),
 		0
 	);
 	menu = menu_en;
@@ -176,10 +236,6 @@ int main() {
 					menu_popup = false;
 				}
 			}
-			break;
-		}
-		case 27: {
-			quit = false;
 			break;
 		}
 		}
