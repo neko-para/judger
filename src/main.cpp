@@ -7,7 +7,7 @@
 #include "../libtest/test.h"
 
 WINDOW* loger;
-int Height, Width;
+int Width, Height;
 
 struct AboutDlg : public Dialog {
 	int px, py;
@@ -55,7 +55,10 @@ int main() {
 	menu_en = new Menu("menu_en", 0,
 		new Menu("File", [](Menu*) {},
 			new Menu("New", [](Menu*) {}, 0),
-			new Menu("Open", [](Menu*) {}, 0),
+			new Menu("Open", [](Menu*) {
+				string str;
+				(new InputDialog("Test input" ,str))->Loop();
+			}, 0),
 			new Menu("Close", [](Menu*) {}, 0),
 			new Menu("Exit", [&quit](Menu*) {
 				quit = false;
