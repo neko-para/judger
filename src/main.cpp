@@ -1,133 +1,37 @@
 #include <ncurses.h>
 #include <stdarg.h>
 #include <string.h>
-#include <string>
-#include <vector>
 #include <algorithm>
-#include <functional>
+#include "menu.h"
+#include "dialog.h"
 #include "../libtest/test.h"
-using std::string;
-using std::vector;
-using std::find;
-using std::max;
-using std::function;
 
 WINDOW* loger;
 int Height, Width;
 
-struct Menu {
-	string title;
-	function<void(Menu*)> proc;
-	vector<Menu*> items;
-	Menu* father;
-	Menu(const char* t, const function<void(Menu*)>& p, ...) : title(t), proc(p), father(0) {
-		va_list lst;
-		va_start(lst, p);
-		Menu* ptr = va_arg(lst, Menu*);
-		while (ptr) {
-			items.push_back(ptr);
-			ptr->father = this;
-			ptr = va_arg(lst, Menu*);
-		}
-		va_end(lst);
-	}
-	size_t GetWidth() const {
-		size_t l = 0;
-		for (size_t i = 0; i < items.size(); ++i) {
-			l = max(l, items[i]->title.length());
-		}
-		return l + 1;
-	}
-	size_t GetPos() const {
-		if (father) {
-			return std::find(father->items.begin(), father->items.end(), this) - father->items.begin();
-		} else {
-			return 0;
-		}
-	}
-	void draw(WINDOW* win, size_t& x, size_t& y) {
-		if (!father) {
-			for (size_t i = 0; i < items.size(); ++i) {
-				wmove(win, i, 0);
-				waddstr(win, items[i]->title.c_str());
-			}
-			x = GetWidth();
-			y = 0;
-		} else {
-			father->draw(win, x, y);
-			y += GetPos();
-			for (size_t i = 0; i < items.size(); ++i) {
-				wmove(win, y + i, x);
-				waddstr(win, items[i]->title.c_str());
-			}
-			x += GetWidth();
-		}
-	}
-	Menu* Translate(int& x, int& y) {
-		if (!father) {
-			--y;
-			if (x < GetWidth() && y < items.size()) {
-				return items[y];
-			} else {
-				x -= GetWidth();
-				return 0;
-			}
-		} else {
-			Menu* t = father->Translate(x, y);
-			if (t) {
-				return t;
-			}
-			if (x < 0 || y < 0) {
-				return 0;
-			}
-			y -= GetPos();
-			if (x < GetWidth() && y < items.size()) {
-				return items[y];
-			} else {
-				x -= GetWidth();
-				return 0;
-			}
-		}
-	}
-};
-
-struct Dialog {
-	WINDOW* wnd;
-	bool exit;
-	Dialog() {
-		exit = false;
-	}
-	virtual ~Dialog() {
-		if (wnd) {
-			delwin(wnd);
-		}
-	}
-	void Loop() {
-		while (!exit) {
-			Draw();
-			wrefresh(wnd);
-			Input(getch());
-		}
-		delete this;
-	}
-	virtual void Input(int k) {}
-	virtual void Draw() {}
-};
-
 struct AboutDlg : public Dialog {
+	int px, py;
 	AboutDlg() {
 		const char* msg = "Judger. a simple oi contest.";
 		int l = strlen(msg);
-		wnd = newwin(4, l + 2, Height / 2 - 2, (Width - l) >> 1);
+		wnd = newwin(4, l + 2, (Height - 4) >> 1, (Width - l) >> 1);
 		box(wnd, 0, 0);
 		wmove(wnd, 1, 1);
 		waddstr(wnd, msg);
+		px = ((Width - l) >> 1) + ((l - 2) >> 1);
+		py = ((Height - 4) >> 1) + 2;
 		wmove(wnd, 2, (l - 2) >> 1);
 		waddstr(wnd, "ok");
 	}
 	virtual void Input(int k) {
 		if (k == '\n' || k == ' ') {
 			exit = true;
+		} else if (k == KEY_MOUSE) {
+			MEVENT me;
+			getmouse(&me);
+			if ((me.x == px || me.x == px + 1) && py == me.y) {
+				exit = true;
+			}
 		}
 	}
 };
@@ -169,8 +73,7 @@ int main() {
 			),
 			0
 		),
-		new Menu("About", [&](Menu*) {
-			menu_popup = false;
+		new Menu("About", [](Menu*) {
 			(new AboutDlg)->Loop();
 		}, 0),
 		0
@@ -196,8 +99,7 @@ int main() {
 			),
 			0
 		),
-		new Menu("关于", [&](Menu*) {
-			menu_popup = false;
+		new Menu("关于", [](Menu*) {
 			(new AboutDlg)->Loop();
 		}, 0),
 		0

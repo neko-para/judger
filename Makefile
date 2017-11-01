@@ -39,7 +39,7 @@ tmp/libtest.a: tmp/test.o tmp/procres.o
 out/%$(EXESUF): checker/%.cpp
 	$(CXX) $< -o $@ $(CXXFLAGS)
 
-tmp/%.o: src/%.cpp $(wildcard *.h)
+tmp/%.o: src/%.cpp $(wildcard *.h) $(wildcard src/*.h)
 	$(CXX) -c $< -o $@ $(CXXFLAGS)
 
 out/judger$(EXESUF): tmp/libtest.a $(OBJS)
