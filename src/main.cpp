@@ -91,6 +91,7 @@ struct Menu {
 };
 
 int main() {
+	setlocale(LC_ALL, "");
 	initscr();
 	raw();
 	noecho();
@@ -102,7 +103,10 @@ int main() {
 	bool quit = true;
 	bool menu_popup = false;
 	WINDOW* menu_win = newwin(Height - 1, Width, 1, 0);
-	Menu* menu = new Menu("", 0,
+	Menu* menu;
+	Menu* menu_en;
+	Menu* menu_chs;
+	menu_en = new Menu("menu_en", 0,
 		new Menu("File", [](Menu*) {},
 			new Menu("New", [](Menu*) {}, 0),
 			new Menu("Open", [](Menu*) {}, 0),
@@ -110,8 +114,35 @@ int main() {
 			new Menu("Exit", [&quit](Menu*) {quit = false;}, 0),
 			0
 		),
+		new Menu("Setting", 0,
+			new Menu("Language", 0,
+				new Menu("English <", 0, 0),
+				new Menu("中文", [&](Menu*) {menu = menu_chs; menu_popup = false;}, 0),
+				0
+			),
+			0
+		),
 		0
 	);
+	menu_chs = new Menu("menu_chs", 0,
+		new Menu("文件", [](Menu*) {},
+			new Menu("新建", [](Menu*) {}, 0),
+			new Menu("打开", [](Menu*) {}, 0),
+			new Menu("关闭", [](Menu*) {}, 0),
+			new Menu("退出", [&quit](Menu*) {quit = false;}, 0),
+			0
+		),
+		new Menu("设置", 0,
+			new Menu("语言", 0,
+				new Menu("English", [&](Menu*) {menu = menu_en; menu_popup = false;}, 0),
+				new Menu("中文 <", 0, 0),
+				0
+			),
+			0
+		),
+		0
+	);
+	menu = menu_en;
 	Menu* cur;
 	addch('@');
 	while (quit) {
@@ -128,21 +159,21 @@ int main() {
 		case KEY_MOUSE: {
 			MEVENT me;
 			getmouse(&me);
-			if (me.bstate & BUTTON1_CLICKED) {
-				if (me.x == 0 && me.y == 0) {
-					menu_popup = !menu_popup;
-					if (menu_popup) {
-						cur = menu;
-					}
-				} else if (menu_popup) {
-					int x = me.x, y = me.y;
-					Menu* m = cur->Translate(x, y);
-					if (m) {
-						cur = m;
+			if (me.x == 0 && me.y == 0) {
+				menu_popup = !menu_popup;
+				if (menu_popup) {
+					cur = menu;
+				}
+			} else if (menu_popup) {
+				int x = me.x, y = me.y;
+				Menu* m = cur->Translate(x, y);
+				if (m) {
+					cur = m;
+					if (m->proc) {
 						m->proc(m);
-					} else {
-						menu_popup = false;
 					}
+				} else {
+					menu_popup = false;
 				}
 			}
 			break;

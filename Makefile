@@ -43,4 +43,4 @@ tmp/%.o: src/%.cpp $(wildcard *.h)
 	$(CXX) -c $< -o $@ $(CXXFLAGS)
 
 out/judger$(EXESUF): tmp/libtest.a $(OBJS)
-	$(CXX) $(OBJS) -o $@ $(CXXFLAGS) $(LDFLAGS) -lncurses -ltinfo tmp/libtest.a
+	$(CXX) $(OBJS) -o $@ $(CXXFLAGS) $(LDFLAGS) -lncursesw -ltinfo tmp/libtest.a
